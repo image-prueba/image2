@@ -87,9 +87,9 @@
         const div = document.createElement('div');
         div.className = 'post';
         div.innerHTML = `
-          <img src="${post.image}" alt="Imagen subida">
+          <img src="/uploads/${post.image}" alt="Imagen subida">
           <audio controls>
-            <source src="${post.audio}" type="audio/mpeg">
+            <source src="/uploads/${post.audio}" type="audio/mpeg">
             Tu navegador no soporta el audio.
           </audio>
         `;
