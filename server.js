@@ -25,14 +25,20 @@ const storage = new CloudinaryStorage({
 const upload = multer({ storage: storage });
 
 // Servir index.html en la raíz
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+app.post('/uploads', upload.fields([{ name: 'image' }, { name: 'audio' }]), (req, res) => {
+  try {
+    const image = req.files['image']?.[0]?.path;
+    const audio = req.files['audio']?.[0]?.path;
 
-app.post('/upload', upload.fields([{ name: 'image' }, { name: 'audio' }]), (req, res) => {
-  const image = req.files['image']?.[0]?.path;
-  const audio = req.files['audio']?.[0]?.path;
-  res.send({ image, audio });
+    if (!image || !audio) {
+      return res.status(400).send('Faltan imagen o audio');
+    }
+
+    res.send({ image, audio });
+  } catch (error) {
+    console.error('Error en /upload:', error);
+    res.status(500).send('Error interno del servidor');
+  }
 });
 
 const PORT = process.env.PORT || 3000;
