@@ -1,45 +1,41 @@
 const express = require('express');
 const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const path = require('path');
 
 const app = express();
-app.use(express.json());
 
-cloudinary.config({
-  cloud_name: 'dwkdbhys0',       // REEMPLAZA
-  api_key: '712815761927256',             // REEMPLAZA
-  api_secret: 'tXTFIReWuBcyk0go-KgzHfhTF7Q'        // REEMPLAZA
+// Configuración multer para guardar archivos en uploads/
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads/'),
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
 
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'uploads',
-    format: async (req, file) => path.extname(file.originalname).slice(1),
-    public_id: (req, file) => file.originalname
-  }
+const upload = multer({ storage });
+
+// Servir carpeta uploads como estática
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Servir el index.html en la raíz
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-const upload = multer({ storage: storage });
-
-// Servir index.html en la raíz
-app.post('/uploads', upload.fields([{ name: 'image' }, { name: 'audio' }]), (req, res) => {
+// Endpoint para subir archivos
+app.post('/upload', upload.fields([{ name: 'image' }, { name: 'audio' }]), (req, res) => {
   try {
-    const image = req.files['image']?.[0]?.path;
-    const audio = req.files['audio']?.[0]?.path;
-
-    if (!image || !audio) {
-      return res.status(400).send('Faltan imagen o audio');
+    if (!req.files || !req.files.image || !req.files.audio) {
+      return res.status(400).send('Falta imagen o audio');
     }
+    const imageUrl = `/uploads/${req.files.image[0].filename}`;
+    const audioUrl = `/uploads/${req.files.audio[0].filename}`;
 
-    res.send({ image, audio });
+    res.json({ imageUrl, audioUrl });
   } catch (error) {
-    console.error('Error en /upload:', error);
+    console.error(error);
     res.status(500).send('Error interno del servidor');
   }
 });
 
+// Iniciar servidor
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
+app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
