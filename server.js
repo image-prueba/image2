@@ -5,13 +5,12 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const path = require('path');
 
 const app = express();
-app.use(express.static('public'));
 app.use(express.json());
 
 cloudinary.config({
-  cloud_name: 'dwkdbhys0',       // ← REEMPLAZA esto
-  api_key: '712815761927256',             // ← REEMPLAZA esto
-  api_secret: 'tXTFIReWuBcyk0go-KgzHfhTF7Q'        // ← REEMPLAZA esto
+  cloud_name: 'dwkdbhys0',       // REEMPLAZA
+  api_key: '712815761927256',             // REEMPLAZA
+  api_secret: 'tXTFIReWuBcyk0go-KgzHfhTF7Q'        // REEMPLAZA
 });
 
 const storage = new CloudinaryStorage({
@@ -24,6 +23,11 @@ const storage = new CloudinaryStorage({
 });
 
 const upload = multer({ storage: storage });
+
+// Servir index.html en la raíz
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 app.post('/upload', upload.fields([{ name: 'image' }, { name: 'audio' }]), (req, res) => {
   const image = req.files['image']?.[0]?.path;
