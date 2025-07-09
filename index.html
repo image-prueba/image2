@@ -2,113 +2,55 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Galería de Imagen y Audio</title>
+  <title>Galería de Imágenes y Audios</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f4f4f4;
-      padding: 20px;
-      margin: 0;
-    }
-
-    h1, h2 {
-      color: #333;
-    }
-
-    form {
-      margin-bottom: 30px;
-    }
-
-    input, button {
-      margin: 10px;
-      padding: 10px;
-    }
-
-    .gallery {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
-    }
-
-    .post {
-      width: 220px;
-      height: 300px;
-      background-color: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      padding: 10px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.2s;
-    }
-
-    .post:hover {
-      transform: scale(1.03);
-    }
-
-    .post img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-
-    audio {
-      width: 100%;
-    }
+    body { font-family: sans-serif; text-align: center; background: #f5f5f5; }
+    form { margin: 2em auto; padding: 1em; background: white; border-radius: 8px; max-width: 400px; }
+    .gallery { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin: 2em; }
+    .post { width: 200px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    img { width: 100%; border-radius: 5px; }
+    audio { width: 100%; margin-top: 10px; }
   </style>
 </head>
 <body>
-  <h1>Sube una Imagen y un Audio</h1>
-  <form id="uploadForm" enctype="multipart/form-data">
-    <input type="file" name="image" accept="image/*" required>
-    <input type="file" name="audio" accept="audio/*" required>
+  <h1>Sube tu imagen y audio</h1>
+  <form id="uploadForm">
+    <input type="file" name="image" accept="image/*" required><br><br>
+    <input type="file" name="audio" accept="audio/*" required><br><br>
     <button type="submit">Subir</button>
   </form>
 
-  <h2>Galería:</h2>
-  <div id="gallery" class="gallery"></div>
+  <h2>Galería</h2>
+  <div class="gallery" id="gallery"></div>
 
   <script>
-    async function fetchPosts() {
+    const form = document.getElementById('uploadForm');
+    const gallery = document.getElementById('gallery');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      await fetch('/upload', { method: 'POST', body: formData });
+      form.reset();
+      loadGallery();
+    });
+
+    async function loadGallery() {
       const res = await fetch('/posts');
       const posts = await res.json();
-
-      const gallery = document.getElementById('gallery');
       gallery.innerHTML = '';
-
-      posts.reverse().forEach(post => {
+      posts.forEach(post => {
         const div = document.createElement('div');
         div.className = 'post';
         div.innerHTML = `
-          <img src="/uploads/${post.image}" alt="Imagen subida">
-          <audio controls>
-            <source src="/uploads/${post.audio}" type="audio/mpeg">
-            Tu navegador no soporta el audio.
-          </audio>
+          <img src="/uploads/${post.image}" alt="Imagen">
+          <audio controls src="/uploads/${post.audio}"></audio>
         `;
         gallery.appendChild(div);
       });
     }
 
-    document.getElementById('uploadForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      await fetch('/upload', {
-        method: 'POST',
-        body: formData
-      });
-      e.target.reset();
-      fetchPosts();
-    });
-
-    fetchPosts();
+    loadGallery();
   </script>
 </body>
 </html>
