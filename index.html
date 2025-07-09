@@ -1,24 +1,114 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Galería de Imagen y Audio</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    form { margin-bottom: 30px; }
-    #gallery div { margin-bottom: 20px; }
-    img { max-width: 200px; display: block; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f4;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h1, h2 {
+      color: #333;
+    }
+
+    form {
+      margin-bottom: 30px;
+    }
+
+    input, button {
+      margin: 10px;
+      padding: 10px;
+    }
+
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    .post {
+      width: 220px;
+      height: 300px;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      padding: 10px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s;
+    }
+
+    .post:hover {
+      transform: scale(1.03);
+    }
+
+    .post img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    audio {
+      width: 100%;
+    }
   </style>
 </head>
 <body>
-  <h1>Sube tu Imagen y Audio</h1>
+  <h1>Sube una Imagen y un Audio</h1>
   <form id="uploadForm" enctype="multipart/form-data">
     <input type="file" name="image" accept="image/*" required>
     <input type="file" name="audio" accept="audio/*" required>
     <button type="submit">Subir</button>
   </form>
-  <div id="gallery"></div>
-  <script src="script.js"></script>
+
+  <h2>Galería:</h2>
+  <div id="gallery" class="gallery"></div>
+
+  <script>
+    async function fetchPosts() {
+      const res = await fetch('/posts');
+      const posts = await res.json();
+
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = '';
+
+      posts.reverse().forEach(post => {
+        const div = document.createElement('div');
+        div.className = 'post';
+        div.innerHTML = `
+          <img src="${post.image}" alt="Imagen subida">
+          <audio controls>
+            <source src="${post.audio}" type="audio/mpeg">
+            Tu navegador no soporta el audio.
+          </audio>
+        `;
+        gallery.appendChild(div);
+      });
+    }
+
+    document.getElementById('uploadForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      await fetch('/upload', {
+        method: 'POST',
+        body: formData
+      });
+      e.target.reset();
+      fetchPosts();
+    });
+
+    fetchPosts();
+  </script>
 </body>
 </html>
